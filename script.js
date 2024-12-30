@@ -1,12 +1,26 @@
 document.addEventListener('DOMContentLoaded', function () {
     const container = document.querySelector('.calendar-container');
+    const yearSelect = document.getElementById('year-select');
+    const regionSelect = document.getElementById('region-select');
+
     const months = [
         "Enero", "Febrero", "Marzo", "Abril",
         "Mayo", "Junio", "Julio", "Agosto",
         "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
 
-    // Parsear el archivo ICS
+    const currentYear = new Date().getFullYear();
+
+    // Inicializar selectores
+    for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        if (year === currentYear) option.selected = true;
+        yearSelect.appendChild(option);
+    }
+
+    // Cargar festivos desde el archivo ICS
     fetch('basic.ics')
         .then(response => response.text())
         .then(data => {
@@ -15,45 +29,66 @@ document.addEventListener('DOMContentLoaded', function () {
             const vevents = comp.getAllSubcomponents('vevent');
 
             const festivos = vevents.map(event => {
-                const date = event.getFirstPropertyValue('dtstart').toJSDate();
-                return date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+                const summary = event.getFirstPropertyValue('summary');
+                const start = event.getFirstPropertyValue('dtstart').toJSDate();
+                const description = event.getFirstPropertyValue('description') || '';
+                return { date: start, summary, description };
             });
 
-            // Generar el calendario
-            const currentYear = new Date().getFullYear();
-            months.forEach((monthName, monthIndex) => {
-                const monthDiv = document.createElement('div');
-                monthDiv.classList.add('month');
+            function updateCalendar() {
+                const selectedYear = parseInt(yearSelect.value);
+                const selectedRegion = regionSelect.value;
 
-                // Encabezado del mes
-                const header = document.createElement('div');
-                header.classList.add('month-header');
-                header.textContent = `${monthName} ${currentYear}`;
-                monthDiv.appendChild(header);
+                const filteredFestivos = festivos.filter(festivo => {
+                    const festivoYear = festivo.date.getFullYear();
+                    const matchesYear = festivoYear === selectedYear;
+                    const matchesRegion = selectedRegion === "all" || festivo.description.includes(selectedRegion);
 
-                // Días del mes
-                const daysDiv = document.createElement('div');
-                daysDiv.classList.add('days');
+                    return matchesYear && matchesRegion;
+                });
 
-                const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const dayDiv = document.createElement('div');
-                    const date = new Date(currentYear, monthIndex, day);
-                    const dateString = date.toISOString().split('T')[0];
+                renderCalendar(filteredFestivos);
+            }
 
-                    dayDiv.classList.add('day');
-                    dayDiv.textContent = day;
+            function renderCalendar(filteredFestivos) {
+                container.innerHTML = '';
 
-                    // Resaltar festivos
-                    if (festivos.includes(dateString)) {
-                        dayDiv.classList.add('festivo');
+                months.forEach((monthName, monthIndex) => {
+                    const monthDiv = document.createElement('div');
+                    monthDiv.classList.add('month');
+
+                    const header = document.createElement('div');
+                    header.classList.add('month-header');
+                    header.textContent = `${monthName} ${yearSelect.value}`;
+                    monthDiv.appendChild(header);
+
+                    const daysDiv = document.createElement('div');
+                    daysDiv.classList.add('days');
+
+                    const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(currentYear, monthIndex, day);
+                        const dateString = date.toISOString().split('T')[0];
+
+                        const dayDiv = document.createElement('div');
+                        dayDiv.classList.add('day');
+                        dayDiv.textContent = day;
+
+                        if (filteredFestivos.some(festivo => festivo.date.toISOString().split('T')[0] === dateString)) {
+                            dayDiv.classList.add('festivo');
+                        }
+
+                        daysDiv.appendChild(dayDiv);
                     }
 
-                    daysDiv.appendChild(dayDiv);
-                }
+                    monthDiv.appendChild(daysDiv);
+                    container.appendChild(monthDiv);
+                });
+            }
 
-                monthDiv.appendChild(daysDiv);
-                container.appendChild(monthDiv);
-            });
+            yearSelect.addEventListener('change', updateCalendar);
+            regionSelect.addEventListener('change', updateCalendar);
+
+            updateCalendar();
         });
 });
