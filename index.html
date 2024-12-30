@@ -7,9 +7,38 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="calendar-container">
-        <!-- Los 12 meses se generan dinámicamente con JavaScript -->
+    <h1>Calendario Laboral</h1>
+    <div>
+        <label for="year-select">Selecciona el año:</label>
+        <select id="year-select"></select>
     </div>
+    <div>
+        <label for="region-select">Selecciona la comunidad autónoma:</label>
+        <select id="region-select">
+            <option value="all">Todas</option>
+            <option value="Andalucía">Andalucía</option>
+            <option value="Aragón">Aragón</option>
+            <option value="Asturias">Asturias</option>
+            <option value="Baleares">Baleares</option>
+            <option value="País Vasco">País Vasco</option>
+            <option value="Canarias">Canarias</option>
+            <option value="Cantabria">Cantabria</option>
+            <option value="Castilla-La Mancha">Castilla-La Mancha</option>
+            <option value="Castilla y León">Castilla y León</option>
+            <option value="Cataluña">Cataluña</option>
+            <option value="Extremadura">Extremadura</option>
+            <option value="Galicia">Galicia</option>
+            <option value="La Rioja">La Rioja</option>
+            <option value="Madrid">Madrid</option>
+            <option value="Murcia">Murcia</option>
+            <option value="Navarra">Navarra</option>
+            <option value="Valenciana">Valenciana</option>
+            <option value="Ceuta">Ceuta</option>
+            <option value="Melilla">Melilla</option>
+        </select>
+    </div>
+    <div class="calendar-container"></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.4.0/ical.min.js"></script>
     <script src="script.js"></script>
 </body>
